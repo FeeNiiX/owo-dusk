@@ -70,8 +70,8 @@ class captchaClient:
                     if not task_id:
                         raise Exception("No taskId returned from API")
 
-                    for _ in range(20):
-                        await asyncio.sleep(3)
+                    for _ in range(60):
+                        await asyncio.sleep(2)
 
                         async with session.post(
                             result_url,
