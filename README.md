@@ -71,9 +71,9 @@ Best selfbot for owobot currently with alot of cool features like Boss battles, 
 ---
 # Credits
 ---
-* https://github.com/BridgeSenseDev/Dank-Memer-Grinder
+* https://github.com/autocord-org/dmg
 > inspired cogs part and code structure. I also learned Python from this project :>.
-* https://github.com/TahaGorme/slashy
+* https://github.com/scriptlabs-cc/slashy
 > inspired website dashboard. Alot of js code was stolen from slashy; before 2.1.0^ script.js was an entire copy of slashy's (with permission ofc).
  
 
