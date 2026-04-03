@@ -1,27 +1,27 @@
 {
     "setprefix": "w",
-    "useSlashCommands": true,
-    "claimMail": true,
-    "autoDaily": true,
-    "cashCheck": true,
+    "useSlashCommands": false,
+    "claimMail": false,
+    "autoDaily": false,
+    "cashCheck": false,
     "commands": {
         "hunt": {
-            "enabled": true,
+            "enabled": false,
             "cooldown": [
-                15,
-                17
+                13.4,
+                13.5
             ],
             "useShortForm": true
         },
         "battle": {
             "enabled": true,
             "cooldown": [
-                15,
-                17
+                13.4,
+                13.5
             ],
             "useShortForm": true,
-            "showStreakInConsole": false,
-            "notifyStreakLoss": false
+            "showStreakInConsole": true,
+            "notifyStreakLoss": true
         },
         "sell": {
             "enabled": false,
@@ -60,8 +60,8 @@
         "pray": {
             "enabled": false,
             "cooldown": [
-                310,
-                400
+                300,
+                301
             ],
             "userid": [],
             "pingUser": false,
@@ -71,7 +71,7 @@
             }
         },
         "curse": {
-            "enabled": true,
+            "enabled": false,
             "cooldown": [
                 310,
                 400
@@ -126,7 +126,7 @@
             ]
         },
         "autoHuntBot": {
-            "enabled": true,
+            "enabled": false,
             "cashToSpend": 10000,
             "upgrader": {
                 "enabled": true,
@@ -156,11 +156,11 @@
     "gamble": {
         "allottedAmount": 10000,
         "goalSystem": {
-            "enabled": true,
+            "enabled": false,
             "amount": 30000
         },
         "coinflip": {
-            "enabled": true,
+            "enabled": false,
             "startValue": 200,
             "multiplierOnLose": 2,
             "cooldown": [
@@ -173,7 +173,7 @@
             }
         },
         "slots": {
-            "enabled": true,
+            "enabled": false,
             "startValue": 200,
             "multiplierOnLose": 2,
             "cooldown": [
@@ -182,7 +182,7 @@
             ]
         },
         "blackjack": {
-            "enabled": true,
+            "enabled": false,
             "startValue": 200,
             "multiplierOnLose": 2,
             "cooldown": [
@@ -193,11 +193,11 @@
     },
     "bossBattle": {
         "enabled": true,
-        "joinChancePercent": 80,
+        "joinChancePercent": 100,
         "joinAllGuilds": true,
         "guildJoinRules": {
             "ignoreGuildIds": [],
-            "onlyJoinGuildIds": []
+            "onlyJoinGuildIds": [559475774441259008]
         }
     },
     "giveawayJoiner": {
@@ -255,15 +255,15 @@
             2.7
         ],
         "captchaRestart": [
-            3.7,
-            5.6
+            0.5,
+            1.0
         ],
         "commandHandler": {
             "betweenCommands": [
-                1.7,
-                2.7
+                1.0,
+                2.0
             ],
-            "beforeReaddingToQueue": 7
+            "beforeReaddingToQueue": 14
         },
         "reactionBot": {
             "huntAndBattle": false,
@@ -278,7 +278,7 @@
     
     "autoUse": {
         "gems": {
-            "enabled": true,
+            "enabled": false,
             "order": {
                 "lowestToHighest": true
             },
@@ -299,8 +299,8 @@
             },
             "disableHuntIfNoGems": false
         },
-        "autoLootbox": true,
-        "autoCrate": true
+        "autoLootbox": false,
+        "autoCrate": false
     },
     "customCommands": {
         "enabled": false,

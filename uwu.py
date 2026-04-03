@@ -60,6 +60,8 @@ def handle_sigint(signal_number, frame):
     print("\nCtrl+C detected. stopping code!")
     os._exit(0)
 
+def restart():
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 signal.signal(signal.SIGINT, handle_sigint)
 
@@ -699,6 +701,9 @@ class MyClient(commands.Bot):
 
     @tasks.loop(seconds=7)
     async def safety_check_loop(self):
+        if not misc_dict["auto-updates"]:
+            return
+
         safety_check = requests.get(f"{owo_dusk_api}/safety_check.json").json()
         latest_version = requests.get(f"{owo_dusk_api}/version.json").json()
 
@@ -1216,7 +1221,10 @@ class MyClient(commands.Bot):
                 filename = os.path.basename(frame_info.filename)
                 lineno = frame_info.lineno
 
-            content_to_print = f"[#676585]❲{current_time}❳[/#676585] {self.username} - {text} | [#676585]❲{filename}:{lineno}❳[/#676585]"
+            if misc_dict["debug"]["hideUser"]:
+                content_to_print = f"[#676585]❲{current_time}❳[/#676585] {text} | [#676585]❲{filename}:{lineno}❳[/#676585]"
+            else:
+                content_to_print = f"[#676585]❲{current_time}❳[/#676585] {self.username} - {text} | [#676585]❲{filename}:{lineno}❳[/#676585]"
             console.print(content_to_print, style=color, markup=True)
             with lock:
                 if self.misc["debug"]["logInTextFile"]:
@@ -1468,26 +1476,7 @@ class MyClient(commands.Bot):
         self.lock = asyncio.Lock()
         self.webhook_lock = asyncio.Lock()
         if self.misc["debug"]["hideUser"]:
-            x = [
-                "Sunny",
-                "River",
-                "Echo",
-                "Sky",
-                "Shadow",
-                "Nova",
-                "Jelly",
-                "Pixel",
-                "Cloud",
-                "Mint",
-                "Flare",
-                "Breeze",
-                "Dusty",
-                "Blip",
-            ]
-            random_part = self.random.choice(x)
-            self.username = (
-                f"{random_part}_{abs(hash(str(self.user.id) + random_part)) % 10000}"
-            )
+            self.username = ""
         else:
             self.username = self.user.name
 
@@ -1823,11 +1812,6 @@ def run_bot(token, channel_id, global_settings_dict, token_len):
 
 
 if __name__ == "__main__":
-    notify(
-        "OwO-Dusk starting... If any issue arises visit out discord support server (link available in console or github)",
-        "Starting OwO-Dusk! :>",
-    )
-
     if not misc_dict["console"]["compactMode"]:
         console.print(owoPanel)
         console.rule(f"[bold blue1]version - {version}", style="navy_blue")

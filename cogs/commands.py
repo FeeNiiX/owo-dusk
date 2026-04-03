@@ -16,6 +16,7 @@ import time
 from collections import deque
 from discord.ext import commands, tasks
 from datetime import datetime, timezone, timedelta
+from utils.notification import notify
 # from uwu import MyClient
 
 
@@ -28,6 +29,34 @@ class Commands(commands.Cog):
         self.updated_between_cd = False
 
         self.last_msg = 0
+        self.last_owo = 0
+        self.warned = False
+
+    @tasks.loop()
+    async def watchdog(self):
+        await asyncio.sleep(1)
+
+        if self.bot.command_handler_status["captcha"]:
+            return
+
+        elapsed1 = time.time() - self.last_msg
+        elapsed2 = time.time() - self.last_owo
+
+        if elapsed1 > 60 and not self.warned:
+            self.warned = True
+            await self.bot.log("Unable To Detect Messages! Restarting in 5s", "#8b1657")
+            notify(f"Unable To Detect Messages!", "Restarting...")
+            self.bot.command_handler_status["captcha"] = True
+            await asyncio.sleep(5)
+            self.bot.restart()
+
+        if elapsed2 > 65 and not self.warned:
+            self.warned = True
+            await self.bot.log("OwO is not responding. Restarting...", "#8b1657")
+            notify(f"OwO is not responding!", "Restarting in 20s")
+            self.bot.command_handler_status["captcha"] = True
+            await asyncio.sleep(20)
+            self.bot.restart()
 
     @property
     def command_hander_settings(self):
@@ -67,6 +96,7 @@ class Commands(commands.Cog):
         await self.bot.wait_until_ready()
         self.send_commands.start()
         self.monitor_checks.start()
+        self.watchdog.start()
 
     async def cog_load(self):
         """Run join_previous_giveaways when bot is ready"""
@@ -171,9 +201,13 @@ class Commands(commands.Cog):
         except Exception as e:
             await self.bot.log(f"Error - monitor_checks(): {e}", "#c25560")
 
-    """@commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_message(self, message):
-        self.last_msg = time.time()"""
+        self.last_msg = time.time()
+        self.warned1 = False
+        if (message.author.id == self.bot.owo_bot_id):
+            self.last_owo = time.time()
+            self.warned2 = False
 
 
 async def setup(bot):

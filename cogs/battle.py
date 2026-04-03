@@ -11,8 +11,10 @@
 # (at your option) any later version.
 
 import asyncio
+import time
+import re
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 from utils.notification import notify
 #from uwu import MyClient
 
@@ -20,6 +22,8 @@ from utils.notification import notify
 class Battle(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.last_battle = time.time()
+        self.warned = False
         self.cmd = {
             "cmd_name": "",
             "prefix": True,
@@ -32,6 +36,23 @@ class Battle(commands.Cog):
     @property
     def settings(self):
         return self.bot.settings_dict_temp.commands.battle
+
+    @tasks.loop()
+    async def battle_watchdog(self):
+        await asyncio.sleep(1)
+
+        if self.bot.command_handler_status["captcha"]:
+            return
+
+        elapsed = time.time() - self.last_battle
+
+        if elapsed > 65 and not self.warned:
+            self.warned = True
+            self.bot.command_handler_status["captcha"] = True
+            await self.bot.log("Battles Timed Out! Restarting in 20s", "#ffff00")
+            notify("Restarting in 20s", "Battles Timed Out!")
+            await asyncio.sleep(20)
+            self.bot.restart()
 
     async def cog_load(self):
         if (
@@ -49,6 +70,7 @@ class Battle(commands.Cog):
                 else self.bot.alias["battle"]["normal"]
             )
             asyncio.create_task(self.bot.put_queue(self.cmd))
+            asyncio.create_task(self.battle_watchdog())
 
     async def cog_unload(self):
         await self.bot.remove_queue(id="battle")
@@ -67,11 +89,17 @@ class Battle(commands.Cog):
                             and f"{self.bot.user.display_name} goes into battle!"
                             in embed.author.name
                         ):
+                            self.last_battle = time.time()
                             if embed.footer:
                                 if self.settings.show_streak:
-                                    await self.bot.log(
-                                        f"{embed.footer.text}", "#292252"
-                                    )
+                                    text = embed.footer.text
+                                    foot = re.search(r"You (won|lost)|It's a (tie)", text)
+                                    outcome = foot.group(1) or foot.group(2)
+                                    nums = re.findall(r"[\d,]+", text)
+                                    if not outcome and not nums:
+                                        return
+                                    custom = f"{outcome} | {' | '.join(nums)}"
+                                    await self.bot.log(custom)
                                 if "You lost in " in embed.footer.text:
                                     if self.settings.notify_streak_loss:
                                         notify(

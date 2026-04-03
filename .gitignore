@@ -120,3 +120,6 @@ Desktop.ini
 
 # Tokens file
 **/tokens.txt
+utils/data/db.sqlite-wal
+utils/data/db.sqlite-shm
+utils/data/weekly_runtime.json

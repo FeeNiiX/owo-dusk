@@ -2,12 +2,13 @@
     "debug": {
         "enabled": true,
         "logInTextFile": false,
-        "hideUser": false
+        "hideUser": true
     },
+    "auto-updates": true,
     "news": true,
     "console": {
         "compactMode": false,
-        "hideStarRepoMessage": false,
+        "hideStarRepoMessage": true,
         "disableCommandSendLog": false
     },
     "hostMode": false,

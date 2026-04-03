@@ -107,32 +107,30 @@ class Captcha(commands.Cog):
             os._exit(0)
 
     @tasks.loop()
-    async def reccur_notifications(self):
-        if self.content_to_notify:
-            """if on_mobile:
-                run_system_command(
-                    f"termux-notification -t '{self.bot.username} captcha!' -c '{self.content_to_notify}' --led-color '#a575ff' --priority 'high'",
-                    timeout=5, 
-                    retry=True
-                    )
-            else:
-                notification.notify(
-                    title=f,
-                    message=,
-                    app_icon=None,
-                    timeout=15
-                )"""
-            notify(self.content_to_notify, f"Captcha - {self.bot.username}!")
-            self.reccured += 1
+    async def reccur_notifications(self, channel, captcha_type):
+        self.captcha_handler(channel, captcha_type)
+        self.reccured += 1
 
-        times_to_reccur = self.bot.global_settings_dict["captcha"]["notifications"][
-            "reccur"
-        ]["times_to_reccur"]
+        times_to_reccur = self.bot.global_settings_dict["captcha"]["notifications"]["reccur"]["times_to_reccur"]
 
-        if self.reccured == times_to_reccur:
+        if self.reccured >= times_to_reccur:
             self.reccur_notifications.cancel()
 
         await asyncio.sleep(get_reccur_sleep_time(times_to_reccur))
+
+    def handle_captcha(self, channel, captcha_type):
+        if self.bot.global_settings_dict["captcha"]["notifications"]["reccur"]["enabled"]:
+            self.reccured = 0
+            try:
+                self.reccur_notifications.start(channel, captcha_type)
+            except Exception:
+                # In case code sends one command after captcha, triggering captcha message twice.
+                pass
+        else:
+            try:
+                self.captcha_handler(channel, captcha_type)
+            except Exception as e:
+                print(f"{e} - at notifs")
 
     def captcha_handler(self, channel, captcha_type):
         if self.bot.misc["hostMode"]:
@@ -142,35 +140,14 @@ class Captcha(commands.Cog):
         content = "captchaContent" if not captcha_type == "Ban" else "bannedContent"
         url = "https://owobot.com/captcha"
 
-        """Notifications"""
         if cnf["notifications"]["enabled"]:
             notification_content = cnf["notifications"][content].format(
                 username=self.bot.username,
                 channelname=channel_name,
                 captchatype=captcha_type,
             )
+            notify(notification_content, f"Captcha - {self.bot.username}!")
 
-            if cnf["notifications"]["reccur"]["enabled"]:
-                self.reccured = 0
-                self.content_to_notify = notification_content
-                try:
-                    self.reccur_notifications.start()
-                except Exception:
-                    # In case code sends one command after captcha, triggering captcha message twice.
-                    pass
-            else:
-                try:
-                    notify(notification_content, f"Captcha - {self.bot.username}!")
-                except Exception as e:
-                    print(f"{e} - at notifs")
-
-        """Play audio file"""
-        """
-        TASK: add two checks, check the path for the file in both outside utils folder
-        and in owo-dusk folder
-        +
-        better error handling for missing PATH
-        """
         if cnf["playAudio"]["enabled"]:
             path = get_path(cnf["playAudio"]["path"])
             try:
@@ -182,7 +159,7 @@ class Captcha(commands.Cog):
                     self.sound = playsound(path, block=False)
             except Exception as e:
                 print(f"{e} - at audio")
-        """Toast/Popup"""
+
         if cnf["toastOrPopup"]["enabled"]:
             try:
                 if on_mobile:
@@ -195,7 +172,7 @@ class Captcha(commands.Cog):
                     self.bot.add_popup_queue(channel_name, captcha_type)
             except Exception as e:
                 print(f"{e} - at Toast/Popup")
-        """Termux - Vibrate"""
+
         if cnf["termux"]["vibrate"]["enabled"]:
             try:
                 if on_mobile:
@@ -208,7 +185,7 @@ class Captcha(commands.Cog):
                     pass
             except Exception as e:
                 print(f"{e} - at Toast/Popup")
-        """Termux - TTS"""
+
         if cnf["termux"]["textToSpeech"]["enabled"]:
             try:
                 if on_mobile:
@@ -221,7 +198,7 @@ class Captcha(commands.Cog):
                     pass
             except Exception as e:
                 print(f"{e} - at Toast/Popup")
-        """Termux - open captcha website"""
+
         if cnf["openCaptchaWebsite"]:
             if on_mobile:
                 run_system_command(f"termux-open {url}", timeout=5, retry=True)
@@ -287,11 +264,10 @@ class Captcha(commands.Cog):
             and message.author.id == self.bot.owo_bot_id
         ):
             if "I have verified that you are human! Thank you! :3" in message.content:
-                time_to_sleep = self.bot.random_float(
-                    self.bot.settings_dict_temp.cooldowns.captchaRestart
-                )
+                time_to_sleep = round(self.bot.random_float(
+                    self.bot.settings_dict_temp.cooldowns.captchaRestart), 2)
                 await self.bot.log(
-                    f"Captcha solved! - sleeping {time_to_sleep}s before restart.",
+                    f"Captcha solved! - sleeping {time_to_sleep}s.",
                     "#5fd700",
                 )
                 await asyncio.sleep(time_to_sleep)
@@ -362,11 +338,11 @@ class Captcha(commands.Cog):
                     cap_dict["hcaptcha_solver"]["enabled"]
                     or cap_dict["image_solver"]["enabled"]
                 ):
-                    self.captcha_handler(message.channel, "Link")
+                    self.handle_captcha(message.channel, "Link")
                 elif (image_captcha and not cap_dict["image_solver"]["enabled"]) or (
                     not image_captcha and not cap_dict["hcaptcha_solver"]["enabled"]
                 ):
-                    self.captcha_handler(message.channel, "Link")
+                    self.handle_captcha(message.channel, "Link")
 
                 if self.bot.global_settings_dict["webhook"]["enabled"]:
                     await self.bot.webhookSender(
@@ -398,7 +374,7 @@ class Captcha(commands.Cog):
                         )
                         if not solved:
                             await self.bot.log("FAILED to solve hcaptcha", "#d70000")
-                            self.captcha_handler(message.channel, "Link")
+                            self.handle_captcha(message.channel, "Link")
                             print("stopping code.... Reason -> Failed Hcaptcha attempt")
                             os._exit(0)
                         else:
@@ -441,7 +417,7 @@ class Captcha(commands.Cog):
             ):
                 self.bot.command_handler_status["captcha"] = True
                 await self.bot.log("Ban detected!", "#d70000")
-                self.captcha_handler(message.channel, "Ban")
+                self.handle_captcha(message.channel, "Ban")
                 console_handler(self.bot.global_settings_dict["console"], captcha=False)
                 if self.bot.global_settings_dict["webhook"]["enabled"]:
                     await self.bot.webhookSender(

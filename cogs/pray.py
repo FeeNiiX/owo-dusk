@@ -12,6 +12,7 @@
 
 import asyncio
 import random
+import re
 
 from discord.ext import commands
 from discord.ext.commands import ExtensionNotLoaded
@@ -135,7 +136,12 @@ class Pray(commands.Cog):
                 or "Slow down and try the command again" in message.content
             ):
                 if not self.pray_curse_ongoing:
-                    await self.bot.log("prayed/cursed successfully!", "#4a3466")
+                    text = message.content
+                    m = re.search(r"You have \*\*\d+\*\* luck point\(s\)!", text)
+                    if not m:
+                        return
+                    result = m.group(0)
+                    await self.bot.log(f"{result}", "#4a3466")
                     self.startup = False
                     await self.start_pray_curse()
                 else:

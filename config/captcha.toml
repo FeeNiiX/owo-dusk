@@ -41,7 +41,7 @@
 notify_when_attempting_to_solve = true
 
 [image_solver]
-enabled = false # Change this to true to enable
+enabled = true # Change this to true to enable
 
 [hcaptcha_solver]
 enabled = false # Change this to true to enable
